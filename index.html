@@ -92,10 +92,31 @@
 
         
         <section id="about" class="p-note">
-  
-    <p>poem</p>
+  <!--  -->
+    <!-- <p>poem</p>
+ -->
+    <span id="magic"></span>
 
+    <!-- Load library from the CDN -->
+    <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>
   
+    <!-- Setup and start animation! -->
+    <script>
+      var str = "Welcome to my blog." + "<br>";
+
+      var options = {
+        strings: [
+          str + "Have a nice day. ^1000",
+        ],
+        typeSpeed: 20,
+        startDelay: 300,
+        contentType: 'html', 
+        // loop: true, // Uncomment this line if you want the animation to loop
+      };
+
+      var typed = new Typed('#magic', options);
+    </script>
+  <!--  -->
   
     <p>
       Find me on
@@ -129,7 +150,7 @@
     <div class="meta">
       
         
-          <time datetime="2024-08-16T02:02:32.698Z" class="dt-published" itemprop="datePublished">2024-08-16</time>
+          <time datetime="2024-08-16T03:22:18.255Z" class="dt-published" itemprop="datePublished">2024-08-16</time>
         
       
     </div>
