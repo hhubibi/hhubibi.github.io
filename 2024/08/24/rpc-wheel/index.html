@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="easy RPC一个最基本的RPC协议，需要有动态代理、序列化模块、服务注册和发现等模块。涉及的设计模式有  工厂模式（序列化器的选择） 代理模式（动态代理）  整个框架如下 文件结构如下 1234567891011121314151617├── model│   ├── RpcRequest.java│   └── RpcResponse.java├── proxy│   ├── Service">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写一个RPC">
+<meta property="og:url" content="http://hhubibi.github.io/2024/08/24/rpc-wheel/index.html">
+<meta property="og:site_name" content="The Why Cafe">
+<meta property="og:description" content="easy RPC一个最基本的RPC协议，需要有动态代理、序列化模块、服务注册和发现等模块。涉及的设计模式有  工厂模式（序列化器的选择） 代理模式（动态代理）  整个框架如下 文件结构如下 1234567891011121314151617├── model│   ├── RpcRequest.java│   └── RpcResponse.java├── proxy│   ├── Service">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://hhubibi.github.io/images/easy-rpc.png">
+<meta property="article:published_time" content="2024-08-24T05:24:21.000Z">
+<meta property="article:modified_time" content="2024-08-31T04:11:12.264Z">
+<meta property="article:author" content="hhubibi">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://hhubibi.github.io/images/easy-rpc.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-chrome-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>手写一个RPC</title><meta name="robots" content="noindex">
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/tag/">Tag</a></li><!--
+     --><!--
+       --><li><a href="/category/">Category</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hhubibi.github.io/2024/08/24/rpc-wheel/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&text=手写一个RPC"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&is_video=false&description=手写一个RPC"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=手写一个RPC&body=Check out this article: http://hhubibi.github.io/2024/08/24/rpc-wheel/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&name=手写一个RPC&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hhubibi.github.io/2024/08/24/rpc-wheel/&t=手写一个RPC"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#easy-RPC"><span class="toc-number">1.</span> <span class="toc-text">easy RPC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8"><span class="toc-number">1.1.</span> <span class="toc-text">1. 序列化器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-RPC%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94"><span class="toc-number">1.2.</span> <span class="toc-text">2. RPC请求和响应</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E5%92%8CClient-Stub"><span class="toc-number">1.3.</span> <span class="toc-text">3. 动态代理和Client Stub</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%92%8C%E5%8F%91%E7%8E%B0"><span class="toc-number">1.4.</span> <span class="toc-text">4. 服务注册和发现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Server-Handler%E5%92%8CServer-Stub"><span class="toc-number">1.5.</span> <span class="toc-text">4. Server Handler和Server Stub</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">1.6.</span> <span class="toc-text">使用</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        手写一个RPC
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">hhubibi</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-08-24T05:24:21.000Z" class="dt-published" itemprop="datePublished">2024-08-24</time>
+        
+        (Updated: <time datetime="2024-08-31T04:11:12.264Z" class="dt-updated" itemprop="dateModified">2024-08-31</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="easy-RPC"><a href="#easy-RPC" class="headerlink" title="easy RPC"></a>easy RPC</h2><p>一个最基本的RPC协议，需要有动态代理、序列化模块、服务注册和发现等模块。涉及的设计模式有</p>
+<ul>
+<li>工厂模式（序列化器的选择）</li>
+<li>代理模式（动态代理）</li>
+</ul>
+<p>整个框架如下<br><img src="/images/easy-rpc.png"></p>
+<p>文件结构如下</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">├── model</span><br><span class="line">│   ├── RpcRequest.java</span><br><span class="line">│   └── RpcResponse.java</span><br><span class="line">├── proxy</span><br><span class="line">│   ├── ServiceProxy.java</span><br><span class="line">│   └── ServiceProxyFactory.java</span><br><span class="line">├── registry</span><br><span class="line">│   └── LocalRegistry.java</span><br><span class="line">├── serialize</span><br><span class="line">│   ├── ProtostuffSerializer.java</span><br><span class="line">│   ├── Serializer.java</span><br><span class="line">│   ├── SerializerFactory.java</span><br><span class="line">│   └── SerializerType.java</span><br><span class="line">└── server</span><br><span class="line">    ├── HttpServer.java</span><br><span class="line">    ├── HttpServerHandler.java</span><br><span class="line">    └── VertxHttpServer.java</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-序列化器"><a href="#1-序列化器" class="headerlink" title="1. 序列化器"></a>1. 序列化器</h3><p>序列化器需要实现两个接口，序列化和反序列化，序列化协议可以选择jdk自带、hessian、hessian2、protostuff等，因此这里需要用工厂模式来创建序列化器。为了节省内存，这里使用了带缓存的工厂，同时使用按需创建的方式，lazy init。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SerializerFactory</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;SerializerType, Serializer&gt; serializerMap = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">SerializerType</span> <span class="variable">DEFAULT_TYPE</span> <span class="operator">=</span> SerializerType.HESSIAN;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Serializer <span class="title function_">getSerializer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> getSerializer(DEFAULT_TYPE);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Serializer <span class="title function_">getSerializer</span><span class="params">(SerializerType type)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> serializerMap.computeIfAbsent(type, SerializerFactory::createSerializer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Serializer <span class="title function_">createSerializer</span><span class="params">(SerializerType type)</span> &#123;</span><br><span class="line">        <span class="keyword">switch</span> (type) &#123;</span><br><span class="line">            <span class="keyword">case</span> HESSIAN:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">HessianSerializer</span>();</span><br><span class="line">            <span class="keyword">case</span> PROTOSTUFF:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ProtostuffSerializer</span>();</span><br><span class="line">            <span class="keyword">case</span> JDK:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">JdkSerializer</span>();</span><br><span class="line">            <span class="keyword">case</span> HESSIAN2:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Hessian2Serializer</span>();</span><br><span class="line">            <span class="keyword">default</span>:</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">HessianSerializer</span>(); <span class="comment">// 返回默认的序列化器</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里使用hessian2序列化的时候需要flush，因为hessian2比hessian1多了一个内部的buffer，会先写入buffer，在写入OutputStream。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> &lt;T&gt; <span class="type">byte</span>[] serialize(T obj) &#123;</span><br><span class="line">    <span class="keyword">try</span> (<span class="type">ByteArrayOutputStream</span> <span class="variable">bos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>()) &#123;</span><br><span class="line">        <span class="type">Hessian2Output</span> <span class="variable">output</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Hessian2Output</span>(bos);</span><br><span class="line">        output.writeObject(obj);</span><br><span class="line">        <span class="comment">// <span class="doctag">NOTE:</span> 这里必须刷新缓冲区</span></span><br><span class="line">        output.flush();</span><br><span class="line">        <span class="keyword">return</span> bos.toByteArray();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">RuntimeException</span>(e);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-RPC请求和响应"><a href="#2-RPC请求和响应" class="headerlink" title="2. RPC请求和响应"></a>2. RPC请求和响应</h3><p>RPC请求里至少应该包括服务名（一般是接口的全限定名）、方法名、方法参数类型、方法参数值，这样可以通过反射去调用方法。RPC响应里应该包括调用结果值、调用结果类型、消息、异常等。<br>因此设计如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RpcRequest</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String serviceName;</span><br><span class="line">    <span class="keyword">private</span> String methodName;</span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt;[] parameterTypes;</span><br><span class="line">    <span class="keyword">private</span> Object[] parameters;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RpcResponse</span> <span class="keyword">implements</span> <span class="title class_">Serializable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> Object data;</span><br><span class="line">    <span class="keyword">private</span> Class&lt;?&gt; dataType;</span><br><span class="line">    <span class="keyword">private</span> String message;</span><br><span class="line">    <span class="keyword">private</span> Exception exception;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>一般来说，RPC都包括协议头和协议体，这里定义的都是RPC的<strong>payload</strong>。如果需要选择不同的序列化方式，需要在协议头里面放例如4 Bytes的序列化协议。这样客户端和服务器可以使用相同的序列化协议。</p>
+<h3 id="3-动态代理和Client-Stub"><a href="#3-动态代理和Client-Stub" class="headerlink" title="3. 动态代理和Client Stub"></a>3. 动态代理和Client Stub</h3><p>为接口生成一个动态代理类。在invoke的时候，拦截请求，序列化参数并通过网络发送至远程服务器。</p>
+<p>这里主要关注动态代理的实现，会在序列化payload之外，再加上一个序列化协议id的头部（4 bytes）</p>
+<p>&#x2F;&#x2F; TODO: 这里使用ByteBuffer来添加头部，感觉会多一次拷贝开销，有没有别的办法？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ServiceProxy</span> <span class="keyword">implements</span> <span class="title class_">InvocationHandler</span> &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">        <span class="type">Serializer</span> <span class="variable">serializer</span> <span class="operator">=</span> SerializerFactory.getSerializer(serializerType);</span><br><span class="line">        <span class="type">RpcRequest</span> <span class="variable">rpcRequest</span> <span class="operator">=</span> RpcRequest.builder()</span><br><span class="line">                .serviceName(method.getDeclaringClass().getName())</span><br><span class="line">                .methodName(method.getName())</span><br><span class="line">                .parameterTypes(method.getParameterTypes())</span><br><span class="line">                .parameters(args)</span><br><span class="line">                .build();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">byte</span>[] bytes = serializer.serialize(rpcRequest);</span><br><span class="line"></span><br><span class="line">            <span class="type">ByteBuffer</span> <span class="variable">buffer</span> <span class="operator">=</span> ByteBuffer.allocate(<span class="number">4</span> + bytes.length);</span><br><span class="line">            buffer.putInt(serializerType.getId()); <span class="comment">// 添加协议 ID（前4个字节）</span></span><br><span class="line">            buffer.put(bytes); <span class="comment">// 添加序列化的请求字节数组</span></span><br><span class="line">            <span class="type">byte</span>[] bytesWithHeader = buffer.array();</span><br><span class="line"></span><br><span class="line">            <span class="type">HttpResponse</span> <span class="variable">httpResponse</span> <span class="operator">=</span> HttpRequest.post(<span class="string">&quot;http://localhost:8888&quot;</span>).body(bytesWithHeader).execute();</span><br><span class="line">            <span class="type">byte</span>[] result = httpResponse.bodyBytes();</span><br><span class="line">            <span class="type">RpcResponse</span> <span class="variable">rpcResponse</span> <span class="operator">=</span> serializer.deserialize(result, RpcResponse.class);</span><br><span class="line">            <span class="keyword">return</span> rpcResponse.getData();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-服务注册和发现"><a href="#4-服务注册和发现" class="headerlink" title="4. 服务注册和发现"></a>4. 服务注册和发现</h3><p>这里就直接用map的get和put方法实现就行，存储接口的全路径名到实现类的映射</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">LocalRegistry</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, Class&lt;?&gt;&gt; registryMap = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">register</span><span class="params">(String serviceName, Class&lt;?&gt; serviceClass)</span> &#123;</span><br><span class="line">        registryMap.put(serviceName, serviceClass);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Class&lt;?&gt; get(String serviceName) &#123;</span><br><span class="line">        <span class="keyword">return</span> registryMap.get(serviceName);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-Server-Handler和Server-Stub"><a href="#4-Server-Handler和Server-Stub" class="headerlink" title="4. Server Handler和Server Stub"></a>4. Server Handler和Server Stub</h3><p>这里首先要读取body bytes，先解析出头部的4个字节得到序列化协议，然后序列化器反序列化得到RpcRequest的参数，根据服务名去服务发现得到实现类，然后根据方法名通过反射调用得到结果，将结果反序列化后通过http响应。</p>
+<p>因此这里主要的设计如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handle</span><span class="params">(HttpServerRequest request)</span> &#123;</span><br><span class="line">    request.bodyHandler(body -&gt; &#123;</span><br><span class="line">        <span class="type">byte</span>[] bytes = body.getBytes();</span><br><span class="line">        <span class="type">RpcRequest</span> <span class="variable">rpcRequest</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">byteBuffer</span> <span class="operator">=</span> ByteBuffer.wrap(bytes);</span><br><span class="line">        <span class="type">int</span> <span class="variable">id</span> <span class="operator">=</span> byteBuffer.getInt();</span><br><span class="line"></span><br><span class="line">        <span class="type">SerializerType</span> <span class="variable">serializerType</span> <span class="operator">=</span> SerializerType.valueOf(id);</span><br><span class="line">        <span class="type">Serializer</span> <span class="variable">serializer</span> <span class="operator">=</span> SerializerFactory.getSerializer(serializerType);</span><br><span class="line"></span><br><span class="line">        <span class="type">byte</span>[] remainingBytes = <span class="keyword">new</span> <span class="title class_">byte</span>[byteBuffer.remaining()];</span><br><span class="line">        byteBuffer.get(remainingBytes);</span><br><span class="line"></span><br><span class="line">        rpcRequest = serializer.deserialize(remainingBytes, RpcRequest.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 构造响应结果对象</span></span><br><span class="line">        <span class="type">RpcResponse</span> <span class="variable">rpcResponse</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RpcResponse</span>();</span><br><span class="line">        <span class="comment">// 如果请求为 null，直接返回</span></span><br><span class="line">        <span class="keyword">if</span> (rpcRequest == <span class="literal">null</span>) &#123;</span><br><span class="line">            rpcResponse.setMessage(<span class="string">&quot;rpcRequest is null&quot;</span>);</span><br><span class="line">            doResponse(request, rpcResponse, serializer);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class&lt;?&gt; implClass = LocalRegistry.get(rpcRequest.getServiceName());</span><br><span class="line">            <span class="type">Method</span> <span class="variable">method</span> <span class="operator">=</span> implClass.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());</span><br><span class="line">            <span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> method.invoke(implClass.newInstance(), rpcRequest.getParameters());</span><br><span class="line">            rpcResponse.setData(result);</span><br><span class="line">            rpcResponse.setDataType(method.getReturnType());</span><br><span class="line">            rpcResponse.setMessage(<span class="string">&quot;ok&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            rpcResponse.setMessage(e.getMessage());</span><br><span class="line">            rpcResponse.setException(e);</span><br><span class="line">        &#125;</span><br><span class="line">        doResponse(request, rpcResponse, serializer);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><p>Client，直接调用就行，像调用本地方法一样调用远程方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Client</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">HelloService</span> <span class="variable">helloService</span> <span class="operator">=</span> ServiceProxyFactory.getProxy(HelloService.class, SerializerType.PROTOSTUFF);</span><br><span class="line"></span><br><span class="line">        <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">User</span>(<span class="string">&quot;hhubibi&quot;</span>);</span><br><span class="line">        <span class="comment">// 调用</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> helloService.sayHello(user);</span><br><span class="line">        <span class="keyword">if</span>(result != <span class="literal">null</span>) &#123;</span><br><span class="line">            System.out.println(result);</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;result == null&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Server，先注册服务，然后监听</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Server</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        LocalRegistry.register(HelloService.class.getName(), HelloServiceImpl.class);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 启动web服务</span></span><br><span class="line">        <span class="type">VertxHttpServer</span> <span class="variable">server</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">VertxHttpServer</span>();</span><br><span class="line">        server.doStart(<span class="number">8888</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><!-- flag of hidden posts -->
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/tag/">Tag</a></li>
+        
+          <li><a href="/category/">Category</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#easy-RPC"><span class="toc-number">1.</span> <span class="toc-text">easy RPC</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8"><span class="toc-number">1.1.</span> <span class="toc-text">1. 序列化器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-RPC%E8%AF%B7%E6%B1%82%E5%92%8C%E5%93%8D%E5%BA%94"><span class="toc-number">1.2.</span> <span class="toc-text">2. RPC请求和响应</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%8A%A8%E6%80%81%E4%BB%A3%E7%90%86%E5%92%8CClient-Stub"><span class="toc-number">1.3.</span> <span class="toc-text">3. 动态代理和Client Stub</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E5%92%8C%E5%8F%91%E7%8E%B0"><span class="toc-number">1.4.</span> <span class="toc-text">4. 服务注册和发现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Server-Handler%E5%92%8CServer-Stub"><span class="toc-number">1.5.</span> <span class="toc-text">4. Server Handler和Server Stub</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8"><span class="toc-number">1.6.</span> <span class="toc-text">使用</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hhubibi.github.io/2024/08/24/rpc-wheel/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&text=手写一个RPC"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&is_video=false&description=手写一个RPC"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=手写一个RPC&body=Check out this article: http://hhubibi.github.io/2024/08/24/rpc-wheel/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&title=手写一个RPC"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hhubibi.github.io/2024/08/24/rpc-wheel/&name=手写一个RPC&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hhubibi.github.io/2024/08/24/rpc-wheel/&t=手写一个RPC"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024
+    hhubibi
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/tag/">Tag</a></li><!--
+     --><!--
+       --><li><a href="/category/">Category</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

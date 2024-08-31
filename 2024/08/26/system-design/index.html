@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="分布式id 唯一 高可用 高性能：生成速度快、资源消耗小 有序性：趋势递增 安全：需要脱敏，不能包含订单数量等敏感信息  数据库主键自增数据库号段其实就是批量获取一批号，current_max_id到current_max_id + step，减少数据库的访问次数 12345678CREATE TABLE &#96;sequence_id_generator&#96; (  &#96;id&#96; int(10) NOT NU">
+<meta property="og:type" content="article">
+<meta property="og:title" content="场景题和系统设计">
+<meta property="og:url" content="http://hhubibi.github.io/2024/08/26/system-design/index.html">
+<meta property="og:site_name" content="The Why Cafe">
+<meta property="og:description" content="分布式id 唯一 高可用 高性能：生成速度快、资源消耗小 有序性：趋势递增 安全：需要脱敏，不能包含订单数量等敏感信息  数据库主键自增数据库号段其实就是批量获取一批号，current_max_id到current_max_id + step，减少数据库的访问次数 12345678CREATE TABLE &#96;sequence_id_generator&#96; (  &#96;id&#96; int(10) NOT NU">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2024-08-26T04:01:41.000Z">
+<meta property="article:modified_time" content="2024-08-31T04:11:12.264Z">
+<meta property="article:author" content="hhubibi">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-chrome-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>场景题和系统设计</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/tag/">Tag</a></li><!--
+     --><!--
+       --><li><a href="/category/">Category</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="Previous post" href="/2024/08/29/redpacket/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="Next post" href="/2024/08/22/hashmap/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hhubibi.github.io/2024/08/26/system-design/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hhubibi.github.io/2024/08/26/system-design/&text=场景题和系统设计"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hhubibi.github.io/2024/08/26/system-design/&is_video=false&description=场景题和系统设计"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=场景题和系统设计&body=Check out this article: http://hhubibi.github.io/2024/08/26/system-design/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hhubibi.github.io/2024/08/26/system-design/&name=场景题和系统设计&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hhubibi.github.io/2024/08/26/system-design/&t=场景题和系统设计"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8Fid"><span class="toc-number">1.</span> <span class="toc-text">分布式id</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%BB%E9%94%AE%E8%87%AA%E5%A2%9E"><span class="toc-number">1.1.</span> <span class="toc-text">数据库主键自增</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%B7%E6%AE%B5"><span class="toc-number">1.2.</span> <span class="toc-text">数据库号段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#redis-incr"><span class="toc-number">1.3.</span> <span class="toc-text">redis incr</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UUID"><span class="toc-number">1.4.</span> <span class="toc-text">UUID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#snowflake"><span class="toc-number">1.5.</span> <span class="toc-text">snowflake</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text">分布式锁实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6"><span class="toc-number">2.1.</span> <span class="toc-text">条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.2.</span> <span class="toc-text">典型实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-number">2.3.</span> <span class="toc-text">MySQL分布式锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BB%BA%E8%A1%A8"><span class="toc-number">2.3.1.</span> <span class="toc-text">建表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#select-for-update"><span class="toc-number">2.3.2.</span> <span class="toc-text">select for update</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.</span> <span class="toc-text">设计秒杀系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD"><span class="toc-number">3.1.</span> <span class="toc-text">高性能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">3.2.</span> <span class="toc-text">高可用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">3.3.</span> <span class="toc-text">一致性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Feed%E6%B5%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">Feed流实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFeed%E6%B5%81"><span class="toc-number">4.1.</span> <span class="toc-text">什么是Feed流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.2.</span> <span class="toc-text">架构设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F"><span class="toc-number">5.</span> <span class="toc-text">短链系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%9C%89%E7%9F%AD%E9%93%BE"><span class="toc-number">5.1.</span> <span class="toc-text">为什么要有短链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9F%AD%E9%93%BE%E7%94%9F%E6%88%90"><span class="toc-number">5.2.</span> <span class="toc-text">短链生成</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E6%8E%88%E6%9D%83%E7%99%BB%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">第三方授权登录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OAuth-2-0"><span class="toc-number">6.1.</span> <span class="toc-text">OAuth 2.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%99%BB%E5%BD%95"><span class="toc-number">6.2.</span> <span class="toc-text">二维码登录</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E6%83%A0%E5%88%B8%E7%B3%BB%E7%BB%9F"><span class="toc-number">7.</span> <span class="toc-text">优惠券系统</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        场景题和系统设计
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">hhubibi</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-08-26T04:01:41.000Z" class="dt-published" itemprop="datePublished">2024-08-26</time>
+        
+        (Updated: <time datetime="2024-08-31T04:11:12.264Z" class="dt-updated" itemprop="dateModified">2024-08-31</time>)
+        
+      
+    </div>
+
+
+      
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="分布式id"><a href="#分布式id" class="headerlink" title="分布式id"></a>分布式id</h2><ul>
+<li>唯一</li>
+<li>高可用</li>
+<li>高性能：生成速度快、资源消耗小</li>
+<li>有序性：趋势递增</li>
+<li>安全：需要脱敏，不能包含订单数量等敏感信息</li>
+</ul>
+<h3 id="数据库主键自增"><a href="#数据库主键自增" class="headerlink" title="数据库主键自增"></a>数据库主键自增</h3><h3 id="数据库号段"><a href="#数据库号段" class="headerlink" title="数据库号段"></a>数据库号段</h3><p>其实就是批量获取一批号，<code>current_max_id</code>到<code>current_max_id + step</code>，减少数据库的访问次数</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `sequence_id_generator` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">  `current_max_id` <span class="type">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;当前最大id&#x27;</span>,</span><br><span class="line">  `step` <span class="type">int</span>(<span class="number">10</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;号段的长度&#x27;</span>,</span><br><span class="line">  `version` <span class="type">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;版本号&#x27;</span>,</span><br><span class="line">  `biz_type`    <span class="type">int</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;业务类型&#x27;</span>,</span><br><span class="line">   <span class="keyword">PRIMARY</span> KEY (`id`)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8mb4;</span><br></pre></td></tr></table></figure>
+
+<p>上面两种都存在单点问题和安全问题（可以推算出订单量），而且id没有业务含义</p>
+<h3 id="redis-incr"><a href="#redis-incr" class="headerlink" title="redis incr"></a>redis incr</h3><h3 id="UUID"><a href="#UUID" class="headerlink" title="UUID"></a>UUID</h3><ul>
+<li>优点：生成速度快</li>
+<li>缺点：存储消耗空间大、无序、基于mac地址生成的uuid不安全、无业务含义、重复问题</li>
+</ul>
+<h3 id="snowflake"><a href="#snowflake" class="headerlink" title="snowflake"></a>snowflake</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">*------*------------*----------------*-------------*-----------*</span><br><span class="line">| sign | timestamp  | datacenter id  |  worker id  | sequence  |</span><br><span class="line">*------*------------*----------------*-------------*-----------*</span><br><span class="line">  1bits    41bits       5bits             5bits        12bits      </span><br></pre></td></tr></table></figure>
+<ul>
+<li>sign：默认为0，表示正数</li>
+<li>timestamp：时间戳，默认为ms</li>
+<li>sequence：单台机器每毫秒能产生的最大id数</li>
+</ul>
+<p>优缺点</p>
+<ul>
+<li>优点：生成速度快，id有序递增</li>
+<li>缺点：重复id（时间回拨），依赖机器id对分布式环境不友好</li>
+</ul>
+<h2 id="分布式锁实现"><a href="#分布式锁实现" class="headerlink" title="分布式锁实现"></a>分布式锁实现</h2><h3 id="条件"><a href="#条件" class="headerlink" title="条件"></a>条件</h3><ul>
+<li>存储空间，可以访问到</li>
+<li>唯一标识</li>
+<li>至少两种状态</li>
+</ul>
+<h3 id="典型实现"><a href="#典型实现" class="headerlink" title="典型实现"></a>典型实现</h3><ul>
+<li>Zookeeper：先创建临时顺序节点，然后get得到所有创建的子节点，如果序号最小，认为得到锁，否则监视minmax节点，尝试继续获取锁，释放锁则删除节点。临时节点可以在网络故障的时候自动解锁，防止死锁。</li>
+<li>Redis：setnx，判断超时，getset设置新值返回旧值，如果还是超时说明获取了锁，否则获取失败。（会有全局时钟问题）</li>
+<li>MySQL</li>
+</ul>
+<h3 id="MySQL分布式锁"><a href="#MySQL分布式锁" class="headerlink" title="MySQL分布式锁"></a>MySQL分布式锁</h3><h4 id="建表"><a href="#建表" class="headerlink" title="建表"></a>建表</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> distributed_locks (</span><br><span class="line">    lock_name <span class="type">VARCHAR</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">PRIMARY</span> KEY,</span><br><span class="line">    locked_by <span class="type">VARCHAR</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span>,</span><br><span class="line">    locked_at <span class="type">TIMESTAMP</span> <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span>,</span><br><span class="line">    expires_at <span class="type">TIMESTAMP</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p><strong>加锁</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> distributed_locks (lock_name, locked_by, locked_at, expires_at)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;my_lock&#x27;</span>, <span class="string">&#x27;unique_client_id&#x27;</span>, <span class="built_in">CURRENT_TIMESTAMP</span>, DATE_ADD(<span class="built_in">CURRENT_TIMESTAMP</span>, <span class="type">INTERVAL</span> <span class="number">30</span> <span class="keyword">SECOND</span>))</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span></span><br><span class="line">    locked_by <span class="operator">=</span> IF(expires_at <span class="operator">&lt;</span> <span class="built_in">CURRENT_TIMESTAMP</span>, <span class="string">&#x27;unique_client_id&#x27;</span>, locked_by),</span><br><span class="line">    locked_at <span class="operator">=</span> IF(expires_at <span class="operator">&lt;</span> <span class="built_in">CURRENT_TIMESTAMP</span>, <span class="built_in">CURRENT_TIMESTAMP</span>, locked_at),</span><br><span class="line">    expires_at <span class="operator">=</span> IF(expires_at <span class="operator">&lt;</span> <span class="built_in">CURRENT_TIMESTAMP</span>, DATE_ADD(<span class="built_in">CURRENT_TIMESTAMP</span>, <span class="type">INTERVAL</span> <span class="number">30</span> <span class="keyword">SECOND</span>), expires_at);</span><br></pre></td></tr></table></figure>
+
+<p><strong>解锁</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> distributed_locks <span class="keyword">WHERE</span> lock_name <span class="operator">=</span> <span class="string">&#x27;my_lock&#x27;</span> <span class="keyword">AND</span> locked_by <span class="operator">=</span> <span class="string">&#x27;unique_client_id&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="select-for-update"><a href="#select-for-update" class="headerlink" title="select for update"></a>select for update</h4><p><strong>加锁</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> distributed_locks <span class="keyword">WHERE</span> lock_name <span class="operator">=</span> <span class="string">&#x27;my_lock&#x27;</span> <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 如果记录不存在，插入新锁记录</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> distributed_locks (lock_name, locked_by) </span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;my_lock&#x27;</span>, <span class="string">&#x27;unique_client_id&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">NOT</span> <span class="keyword">EXISTS</span> (<span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> distributed_locks <span class="keyword">WHERE</span> lock_name <span class="operator">=</span> <span class="string">&#x27;my_lock&#x27;</span>);</span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>解锁</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">DELETE</span> <span class="keyword">FROM</span> distributed_locks <span class="keyword">WHERE</span> lock_name <span class="operator">=</span> <span class="string">&#x27;my_lock&#x27;</span> <span class="keyword">AND</span> locked_by <span class="operator">=</span> <span class="string">&#x27;unique_client_id&#x27;</span>;</span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="设计秒杀系统"><a href="#设计秒杀系统" class="headerlink" title="设计秒杀系统"></a>设计秒杀系统</h2><h3 id="高性能"><a href="#高性能" class="headerlink" title="高性能"></a>高性能</h3><p>热key二级缓存：热点数据可以在redis写一份，jvm内存写一份（访问最快）</p>
+<p>如何检测热key，京东的解决方案？</p>
+<ul>
+<li>etcd集群：worker ip和规则配置，例如userId_ 开头的key，每2s出现20次算热key之类的，过期时间之类的</li>
+<li>worker：上报ip，监听和计算client发来的key，达到规则的阈值后推送到client和etcd</li>
+<li>client：获取规则，worker ip等，定时任务每500ms批量发送一批待测key到worker（经过shard能保证固定的key的到同一个机器），已经热了的key不会再发送。收到worker推送的热key后，本地caffeine缓存。</li>
+</ul>
+<h3 id="高可用"><a href="#高可用" class="headerlink" title="高可用"></a>高可用</h3><ul>
+<li>Redis集群，哨兵</li>
+<li>限流<ul>
+<li>根据ip、用户限流</li>
+<li>验证码</li>
+<li>提前预约</li>
+</ul>
+</li>
+<li>流量削峰</li>
+<li>降级：优先保障核心功能，比如关闭视频评论，保留播放功能</li>
+<li>熔断：比如A要调B的接口，但是B出故障了，当A调B的失败次数到阈值后，停止A对B的调用</li>
+</ul>
+<h3 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h3><ul>
+<li>减库存方案：下单减库存（即使不付款）<ul>
+<li>不超卖：秒杀商品在缓存中，lua脚本，Redis中减库存成功，通过MQ异步更新到MySQL，达到最终一致性</li>
+</ul>
+</li>
+<li>余额扣减方案：悲观锁，MySQL的select for update，并发量不高可以使用乐观锁</li>
+<li>接口幂等：悲观锁、乐观锁、token、唯一索引、分布式锁<ul>
+<li>token：第一次请求时，服务器生成token带过期时间的，存入redis，第二次请求header带上token，后面先删除token再执行请求（大不了重写生成token，好过带着token再进行第二次非法操作）</li>
+</ul>
+</li>
+</ul>
+<h2 id="Feed流实现"><a href="#Feed流实现" class="headerlink" title="Feed流实现"></a>Feed流实现</h2><h3 id="什么是Feed流"><a href="#什么是Feed流" class="headerlink" title="什么是Feed流"></a>什么是Feed流</h3><p>知乎、抖音首页推荐，朋友圈动态等。</p>
+<ul>
+<li>纯智能推荐：兴趣点</li>
+<li>纯Timeline：时间线</li>
+<li>两者结合</li>
+</ul>
+<h3 id="架构设计"><a href="#架构设计" class="headerlink" title="架构设计"></a>架构设计</h3><ul>
+<li>推模式：写入数据库太多</li>
+<li>拉模式：存储成本低，但是实时性差</li>
+<li>推拉结合：推模式写入活跃用户的数据库，不活跃的用户自己去拉</li>
+</ul>
+<h2 id="短链系统"><a href="#短链系统" class="headerlink" title="短链系统"></a>短链系统</h2><h3 id="为什么要有短链"><a href="#为什么要有短链" class="headerlink" title="为什么要有短链"></a>为什么要有短链</h3><ul>
+<li>短信字数限制</li>
+<li>微博字数限制</li>
+<li>长链生成的二维码太过复杂</li>
+</ul>
+<h3 id="短链生成"><a href="#短链生成" class="headerlink" title="短链生成"></a>短链生成</h3><p>比较一般的方法</p>
+<ul>
+<li>现在redis中查找长链，找到则说明已经生成</li>
+<li>没找到就MD5或者murmurhash生成，转成62进制短码，拼成短网址，检查短网址是否存在于redis</li>
+<li>如果不存在，保存长链到短链和短链到长链的映射，返回，结束</li>
+<li>存在说明发生哈希冲突，加盐生成短码直到没有冲突</li>
+</ul>
+<p>存在的问题？</p>
+<ul>
+<li>外部操作太多，访问redis，hbase等</li>
+<li>随着数量增加，哈希碰撞增加</li>
+<li>大部分短链的有效期很短，1个月后就不再访问了，可以优化生成服务</li>
+</ul>
+<p>如何优化？</p>
+<ul>
+<li>采用自增算法生成短码</li>
+<li>去掉长短映射（没必要）</li>
+<li>内存自增+缓存批量区号（比如一次取10000个）</li>
+<li>30天内有一次访问重置30天有效期，否则删除</li>
+</ul>
+<h2 id="第三方授权登录"><a href="#第三方授权登录" class="headerlink" title="第三方授权登录"></a>第三方授权登录</h2><h3 id="OAuth-2-0"><a href="#OAuth-2-0" class="headerlink" title="OAuth 2.0"></a>OAuth 2.0</h3><p>为第三方应用颁发一个有时效性的token，使第三方应用能通过token得到用户的信息</p>
+<ul>
+<li>客户端向用户发送授权申请</li>
+<li>用户同意授权</li>
+<li>客户端使用获得的<strong>授权码</strong>，向认证服务器申请access token</li>
+<li>认证服务器认证后，发放token</li>
+<li>客户端使用token，向资源服务器申请资源</li>
+<li>资源服务器确认token有效，发放资源</li>
+</ul>
+<p>授权码有效期一般为5-20min，只能使用一次</p>
+<h3 id="二维码登录"><a href="#二维码登录" class="headerlink" title="二维码登录"></a>二维码登录</h3><p>扫码登录可以分为三个阶段：未扫描、已扫描待确认、已确认</p>
+<ul>
+<li>pc携带设备信息发送生成二维码请求至服务器</li>
+<li>服务器生成二维码id，并和设备绑定，返回二维码id</li>
+<li>pc启动定时任务轮询服务器二维码状态，直到成功</li>
+<li>用户扫描二维码，将手机登录凭证(token)和二维码id发送给服务器</li>
+<li>服务器将二维码id和用户身份信息绑定，返回临时token至用户</li>
+<li>用户携带临时token确认登录</li>
+<li>服务器更改二维码状态为已确认，生成pc端token</li>
+<li>pc由于一直在轮询二维码状态，所以会得到token，后续可以凭借token访问服务端api</li>
+</ul>
+<h2 id="优惠券系统"><a href="#优惠券系统" class="headerlink" title="优惠券系统"></a>优惠券系统</h2><p>券模板、券记录都需要持久化</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">Home</a></li>
+        
+          <li><a href="/about/">About</a></li>
+        
+          <li><a href="/archives/">Writing</a></li>
+        
+          <li><a href="/tag/">Tag</a></li>
+        
+          <li><a href="/category/">Category</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8Fid"><span class="toc-number">1.</span> <span class="toc-text">分布式id</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%BB%E9%94%AE%E8%87%AA%E5%A2%9E"><span class="toc-number">1.1.</span> <span class="toc-text">数据库主键自增</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E5%8F%B7%E6%AE%B5"><span class="toc-number">1.2.</span> <span class="toc-text">数据库号段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#redis-incr"><span class="toc-number">1.3.</span> <span class="toc-text">redis incr</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#UUID"><span class="toc-number">1.4.</span> <span class="toc-text">UUID</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#snowflake"><span class="toc-number">1.5.</span> <span class="toc-text">snowflake</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text">分布式锁实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9D%A1%E4%BB%B6"><span class="toc-number">2.1.</span> <span class="toc-text">条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.2.</span> <span class="toc-text">典型实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#MySQL%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-number">2.3.</span> <span class="toc-text">MySQL分布式锁</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BB%BA%E8%A1%A8"><span class="toc-number">2.3.1.</span> <span class="toc-text">建表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#select-for-update"><span class="toc-number">2.3.2.</span> <span class="toc-text">select for update</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.</span> <span class="toc-text">设计秒杀系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD"><span class="toc-number">3.1.</span> <span class="toc-text">高性能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E5%8F%AF%E7%94%A8"><span class="toc-number">3.2.</span> <span class="toc-text">高可用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">3.3.</span> <span class="toc-text">一致性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Feed%E6%B5%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">Feed流实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFFeed%E6%B5%81"><span class="toc-number">4.1.</span> <span class="toc-text">什么是Feed流</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">4.2.</span> <span class="toc-text">架构设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%9F%AD%E9%93%BE%E7%B3%BB%E7%BB%9F"><span class="toc-number">5.</span> <span class="toc-text">短链系统</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%9C%89%E7%9F%AD%E9%93%BE"><span class="toc-number">5.1.</span> <span class="toc-text">为什么要有短链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9F%AD%E9%93%BE%E7%94%9F%E6%88%90"><span class="toc-number">5.2.</span> <span class="toc-text">短链生成</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%96%B9%E6%8E%88%E6%9D%83%E7%99%BB%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">第三方授权登录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OAuth-2-0"><span class="toc-number">6.1.</span> <span class="toc-text">OAuth 2.0</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E7%BB%B4%E7%A0%81%E7%99%BB%E5%BD%95"><span class="toc-number">6.2.</span> <span class="toc-text">二维码登录</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E6%83%A0%E5%88%B8%E7%B3%BB%E7%BB%9F"><span class="toc-number">7.</span> <span class="toc-text">优惠券系统</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=http://hhubibi.github.io/2024/08/26/system-design/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=http://hhubibi.github.io/2024/08/26/system-design/&text=场景题和系统设计"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=http://hhubibi.github.io/2024/08/26/system-design/&is_video=false&description=场景题和系统设计"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=场景题和系统设计&body=Check out this article: http://hhubibi.github.io/2024/08/26/system-design/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=http://hhubibi.github.io/2024/08/26/system-design/&title=场景题和系统设计"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=http://hhubibi.github.io/2024/08/26/system-design/&name=场景题和系统设计&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=http://hhubibi.github.io/2024/08/26/system-design/&t=场景题和系统设计"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024
+    hhubibi
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">Home</a></li><!--
+     --><!--
+       --><li><a href="/about/">About</a></li><!--
+     --><!--
+       --><li><a href="/archives/">Writing</a></li><!--
+     --><!--
+       --><li><a href="/tag/">Tag</a></li><!--
+     --><!--
+       --><li><a href="/category/">Category</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
