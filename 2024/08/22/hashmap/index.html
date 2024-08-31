@@ -14,7 +14,7 @@
 <meta property="og:description" content="字节面试官问了一个问题，为什么实习的项目里用ConcurrentHashMap而不是HashMap，这个map只是单线程在更新，其实用普通的HashMap也可以？我回答的是并发写的时候会有问题，应该不太对。下面使用jdk 1.8来验证一下。  其实我的实习项目里是先更新数据库，然后增量更新缓存。如果主线程和定时任务都在更新缓存的话，是会有写写并发的问题的。但这应该不是主要的原因。（写写并发带来的">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2024-08-22T15:44:16.000Z">
-<meta property="article:modified_time" content="2024-08-31T04:11:12.264Z">
+<meta property="article:modified_time" content="2024-08-31T10:03:32.762Z">
 <meta property="article:author" content="hhubibi">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
@@ -87,6 +87,8 @@
         <li><a class="icon" aria-label="Previous post" href="/2024/08/26/system-design/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
+        <li><a class="icon" aria-label="Next post" href="/2024/05/05/k8s%E6%90%AD%E5%BB%BAmysql%E9%9B%86%E7%BE%A4/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
         <li><a class="icon" aria-label="Back to top" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="Share post" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
       </ul>
@@ -142,7 +144,7 @@
       
         <time datetime="2024-08-22T15:44:16.000Z" class="dt-published" itemprop="datePublished">2024-08-22</time>
         
-        (Updated: <time datetime="2024-08-31T04:11:12.264Z" class="dt-updated" itemprop="dateModified">2024-08-31</time>)
+        (Updated: <time datetime="2024-08-31T10:03:32.762Z" class="dt-updated" itemprop="dateModified">2024-08-31</time>)
         
       
     </div>
