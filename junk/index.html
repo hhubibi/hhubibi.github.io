@@ -19,15 +19,15 @@
   <meta name="author" content="hhubibi">
   <meta name="keywords" content="">
   
-    <meta name="description" content="No sugar, it makes you fool  计网输入url到页面显示发生了什么 解析url 缓存判断 DNS解析得到IP 获取网关或者目的主机的MAC地址 向服务器发送建立TCP连接的请求，三次握手 https的话还有tls四次握手 浏览器发送http报文，服务器响应 断开连接  DNS解析过程 问本地DNS服务器，缓存中存在则直接返回 依次向根域名服务器、顶级域名服务器、权威域名">
+    <meta name="description" content="如果你感到焦虑，那就去做让你感到焦虑的事情  Java集合遍历的方法 普通for 增强for 迭代器 stream forEach  CopyOnWriteArrayList如何保证线程安全volatile修饰数组，保证当前线程对数组对象重新赋值后，其他线程可以立马看见。 123&#x2F;&#x2F; 这个是JDK 11里面的，之前是ReentrantLockfinal transient Object lock">
 <meta property="og:type" content="article">
 <meta property="og:title" content="八股">
 <meta property="og:url" content="http://hhubibi.github.io/junk/index.html">
 <meta property="og:site_name" content="The Why Cafe">
-<meta property="og:description" content="No sugar, it makes you fool  计网输入url到页面显示发生了什么 解析url 缓存判断 DNS解析得到IP 获取网关或者目的主机的MAC地址 向服务器发送建立TCP连接的请求，三次握手 https的话还有tls四次握手 浏览器发送http报文，服务器响应 断开连接  DNS解析过程 问本地DNS服务器，缓存中存在则直接返回 依次向根域名服务器、顶级域名服务器、权威域名">
+<meta property="og:description" content="如果你感到焦虑，那就去做让你感到焦虑的事情  Java集合遍历的方法 普通for 增强for 迭代器 stream forEach  CopyOnWriteArrayList如何保证线程安全volatile修饰数组，保证当前线程对数组对象重新赋值后，其他线程可以立马看见。 123&#x2F;&#x2F; 这个是JDK 11里面的，之前是ReentrantLockfinal transient Object lock">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-08-30T05:43:15.000Z">
-<meta property="article:modified_time" content="2024-09-02T13:07:06.082Z">
+<meta property="article:modified_time" content="2024-09-07T10:53:36.068Z">
 <meta property="article:author" content="hhubibi">
 <meta name="twitter:card" content="summary_large_image">
   
@@ -222,7 +222,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.8k 字
+          2.6k 字
         
       </span>
     
@@ -233,7 +233,7 @@
         
         
         
-          15 分钟
+          22 分钟
         
       </span>
     
@@ -276,8 +276,70 @@
               <div class="markdown-body">
                 
                 <blockquote>
-<p>No sugar, it makes you fool</p>
+<p>如果你感到焦虑，那就去做让你感到焦虑的事情</p>
 </blockquote>
+<h1 id="Java"><a href="#Java" class="headerlink" title="Java"></a>Java</h1><h2 id="集合遍历的方法"><a href="#集合遍历的方法" class="headerlink" title="集合遍历的方法"></a>集合遍历的方法</h2><ul>
+<li>普通for</li>
+<li>增强for</li>
+<li>迭代器</li>
+<li>stream</li>
+<li>forEach</li>
+</ul>
+<h2 id="CopyOnWriteArrayList如何保证线程安全"><a href="#CopyOnWriteArrayList如何保证线程安全" class="headerlink" title="CopyOnWriteArrayList如何保证线程安全"></a>CopyOnWriteArrayList如何保证线程安全</h2><p>volatile修饰数组，保证当前线程对数组对象重新赋值后，其他线程可以立马看见。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 这个是JDK 11里面的，之前是ReentrantLock</span><br><span class="hljs-keyword">final</span> <span class="hljs-keyword">transient</span> <span class="hljs-type">Object</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>();<br><span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> <span class="hljs-keyword">volatile</span> Object[] array;<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>add元素操作，jdk 1.8使用的是ReentrantLock，但是jdk 11使用的是synchronized对象锁。<ul>
+<li>获取当前数组元素</li>
+<li>copy数组，同时长度+1</li>
+<li>数组最后一个位置填充新元素</li>
+<li>替换引用</li>
+</ul>
+</li>
+<li>get操作是无锁的</li>
+</ul>
+<blockquote>
+<p>CopyOnWriteArrayList中没有grow()的扩容操作，适合读多写少的场景</p>
+</blockquote>
+<h2 id="ConcurrentHashMap"><a href="#ConcurrentHashMap" class="headerlink" title="ConcurrentHashMap"></a>ConcurrentHashMap</h2><h3 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h3><ul>
+<li>jdk 1.7：Segment分段锁</li>
+<li>jdk 1.8：CAS + Synchronized + Node数组</li>
+</ul>
+<h3 id="jdk1-7如何计算size的"><a href="#jdk1-7如何计算size的" class="headerlink" title="jdk1.7如何计算size的"></a>jdk1.7如何计算size的</h3><p>先不上锁，计算segment的count之和（最多3次），并计算modCount之和，如果相邻两次的修改数相等，说明这两次遍历之间map没有修改，可以直接返回count之和，如果不等则重新计算，如果超过了最大重试次数，就每个segment加锁然后统计。</p>
+<h2 id="线程的创建方式有哪些"><a href="#线程的创建方式有哪些" class="headerlink" title="线程的创建方式有哪些"></a>线程的创建方式有哪些</h2><ul>
+<li>继承Thread类</li>
+<li>实现Runnable接口</li>
+<li>实现Callable接口</li>
+<li>线程池</li>
+</ul>
+<h2 id="sychronized"><a href="#sychronized" class="headerlink" title="sychronized"></a>sychronized</h2><h3 id="sychronized工作原理"><a href="#sychronized工作原理" class="headerlink" title="sychronized工作原理"></a>sychronized工作原理</h3><p>底层是ObjectMonotor，监视器锁，会在临界区入口和出口加上monitorenter和monitorexit两个指令，底层依赖操作系统的互斥锁实现。当执行monitorenter尝试获取锁的时候，如果对象已经被锁定，锁的计数器+1，其他竞争锁的线程会加入到等待队列中，执行monitorexit的时候计数器-1，计数器减为0会释放锁。线程切换的时候存在用户态内核态切换的开销。</p>
+<ul>
+<li>当多个线程进入同步代码块，先进入entryList</li>
+<li>当一个线程获取到monitor锁之后，就赋值给当前线程，并且计数器+1</li>
+<li>线程调用wait的时候，将释放锁，当前线程设为null，计数器-1，进入waitSet，调用notify或者notifyAll后又会进入entryList</li>
+<li>线程执行完毕，当前线程设为null，计数器-1</li>
+</ul>
+<h3 id="sychronized锁升级"><a href="#sychronized锁升级" class="headerlink" title="sychronized锁升级"></a>sychronized锁升级</h3><ul>
+<li>无锁</li>
+<li>偏向锁：Mark Word中存储线程id，后面加锁可以CAS设置线程id</li>
+<li>轻量级锁：将对象的Mark Work存储到线程的虚拟机栈上，然后CAS将对象Mark Word的内容指向栈上的Displaced Mark Word指针</li>
+<li>重量级锁：利用Mutex实现。轻量级锁状态下自旋10次还获取不到，就会升级为重量级锁，这个会从用户态切换到内核态，开销很大</li>
+</ul>
+<h2 id="ReentrantLock"><a href="#ReentrantLock" class="headerlink" title="ReentrantLock"></a>ReentrantLock</h2><h3 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h3><p>底层依赖于AQS</p>
+<ul>
+<li>可中断</li>
+<li>可设置超时时间</li>
+<li>公平锁和非公平锁</li>
+<li>多个条件变量</li>
+</ul>
+<h2 id="ThreadLocal"><a href="#ThreadLocal" class="headerlink" title="ThreadLocal"></a>ThreadLocal</h2><h3 id="ThreadLocal内存泄漏"><a href="#ThreadLocal内存泄漏" class="headerlink" title="ThreadLocal内存泄漏"></a>ThreadLocal内存泄漏</h3><p>ThreadLocalMap的Entry中存的是ThreadLocal的弱引用到Value的映射，当theadlocal对象为null时，Entry中还存在value的强引用，因此会出现内存泄漏。</p>
+<p>解决方法</p>
+<ul>
+<li>手动threadlocal.remove()</li>
+<li>其实也可以不解决，因为set，get，remove都会有启发式或者探测式清理的方法</li>
+</ul>
+<h3 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ThreadLocal&lt;Integer&gt; threadLocalValue = ThreadLocal.withInitial(() -&gt; <span class="hljs-number">100</span>);<br><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> ThreadLocal&lt;Integer&gt; threadLocalValue = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ThreadLocal</span>&lt;Integer&gt;() &#123;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">protected</span> Integer <span class="hljs-title function_">initialValue</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-number">100</span>; <span class="hljs-comment">// 初始值为 100</span><br>    &#125;<br>&#125;;<br></code></pre></td></tr></table></figure>
+
 <h1 id="计网"><a href="#计网" class="headerlink" title="计网"></a>计网</h1><h2 id="输入url到页面显示发生了什么"><a href="#输入url到页面显示发生了什么" class="headerlink" title="输入url到页面显示发生了什么"></a>输入url到页面显示发生了什么</h2><ul>
 <li>解析url</li>
 <li>缓存判断</li>
@@ -398,9 +460,9 @@
 <li>稳定性：用户程序出故障、不会影响到整个操作系统</li>
 </ul>
 <h2 id="进程、线程、协程的区别"><a href="#进程、线程、协程的区别" class="headerlink" title="进程、线程、协程的区别"></a>进程、线程、协程的区别</h2><ul>
-<li>进程：资源分配的基本单位，进程有独立的内存空间（虚拟内存、文件句柄、信号量等）、栈、寄存器、堆，数据和代码，进程切换开销较大</li>
-<li>线程：OS调度和<strong>执行</strong>的基本单位，有独立的栈和寄存器，共享进程的地址空间，线程切换开销较小（不需要切换页表等资源），一个进程可以有多个线程，线程崩溃可能导致进程崩溃</li>
-<li>协程：用户态的轻量级线程，用户程序负责调度，不需要内核参与，适合并发处理IO任务</li>
+<li>进程：资源分配的基本单位，进程有独立的内存空间（虚拟内存、文件句柄、信号量等）、栈、寄存器、堆，数据和代码，进程切换开销较大。进程切换需要修改页表基地址寄存器，清空TLB和CS，IP寄存器，新进程容易cache miss。</li>
+<li>线程：OS调度和<strong>执行</strong>的基本单位，有独立的栈和寄存器，共享进程的地址空间，线程切换开销较小（不需要切换页表等资源），一个进程可以有多个线程，线程崩溃可能导致进程崩溃。线程切换只需要修改相关寄存器，不需要修改页表，故开销小</li>
+<li>协程：用户态的轻量级线程，用户程序负责调度，不需要内核参与，适合并发处理IO任务，但是一旦一个用户态线程阻塞，整个进程都将阻塞</li>
 </ul>
 <h2 id="线程同步"><a href="#线程同步" class="headerlink" title="线程同步"></a>线程同步</h2><ul>
 <li>自旋锁</li>

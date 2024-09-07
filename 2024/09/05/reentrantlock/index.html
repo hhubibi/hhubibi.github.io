@@ -19,21 +19,22 @@
   <meta name="author" content="hhubibi">
   <meta name="keywords" content="">
   
-    <meta name="description" content="群红包总金额m，分n份，每份下限x，上限y，生成一种的随机的可行分配方案  最简单的版本，随机思路就是先分配最小金额，然后把剩下的金额不断随机加上去，直到为0。这种不太适合流式处理。 1234567891011121314151617181920212223242526public static List&lt;Integer&gt; generateRedPacket(int m, int n">
+    <meta name="description" content="可中断性下面这个例子，A先获取锁，然后持有锁睡眠5秒，B尝试获取锁的过程中被中断。于是程序输出 123Thread-A acquired the lock.Thread-B was interrupted while waiting for the lock.Thread-A released the lock.  12345678910111213141516171819202122232425">
 <meta property="og:type" content="article">
-<meta property="og:title" content="带上下限的红包算法">
-<meta property="og:url" content="http://hhubibi.github.io/2024/08/29/redpacket/index.html">
+<meta property="og:title" content="ReentrantLock可中断等特性的例子">
+<meta property="og:url" content="http://hhubibi.github.io/2024/09/05/reentrantlock/index.html">
 <meta property="og:site_name" content="The Why Cafe">
-<meta property="og:description" content="群红包总金额m，分n份，每份下限x，上限y，生成一种的随机的可行分配方案  最简单的版本，随机思路就是先分配最小金额，然后把剩下的金额不断随机加上去，直到为0。这种不太适合流式处理。 1234567891011121314151617181920212223242526public static List&lt;Integer&gt; generateRedPacket(int m, int n">
+<meta property="og:description" content="可中断性下面这个例子，A先获取锁，然后持有锁睡眠5秒，B尝试获取锁的过程中被中断。于是程序输出 123Thread-A acquired the lock.Thread-B was interrupted while waiting for the lock.Thread-A released the lock.  12345678910111213141516171819202122232425">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2024-08-29T04:18:51.000Z">
+<meta property="article:published_time" content="2024-09-05T10:53:23.000Z">
 <meta property="article:modified_time" content="2024-09-07T10:53:36.068Z">
 <meta property="article:author" content="hhubibi">
+<meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary_large_image">
   
   
   
-  <title>带上下限的红包算法 - The Why Cafe</title>
+  <title>ReentrantLock可中断等特性的例子 - The Why Cafe</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -199,7 +200,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="带上下限的红包算法"></span>
+            <span id="subtitle" data-typed-text="ReentrantLock可中断等特性的例子"></span>
           
         </div>
 
@@ -210,8 +211,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2024-08-29 12:18" pubdate>
-          2024年8月29日 中午
+        <time datetime="2024-09-05 18:53" pubdate>
+          2024年9月5日 晚上
         </time>
       </span>
     
@@ -222,7 +223,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          265 字
+          423 字
         
       </span>
     
@@ -233,7 +234,7 @@
         
         
         
-          3 分钟
+          4 分钟
         
       </span>
     
@@ -270,19 +271,27 @@
       <div class="container nopadding-x-md" id="board-ctn">
         <div id="board">
           <article class="post-content mx-auto">
-            <h1 id="seo-header">带上下限的红包算法</h1>
+            <h1 id="seo-header">ReentrantLock可中断等特性的例子</h1>
             
             
               <div class="markdown-body">
                 
-                <blockquote>
-<p>群红包总金额m，分n份，每份下限x，上限y，生成一种的随机的可行分配方案</p>
-</blockquote>
-<h2 id="最简单的版本，随机"><a href="#最简单的版本，随机" class="headerlink" title="最简单的版本，随机"></a>最简单的版本，随机</h2><p>思路就是先分配最小金额，然后把剩下的金额不断随机加上去，直到为0。这种不太适合流式处理。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Integer&gt; <span class="hljs-title function_">generateRedPacket</span><span class="hljs-params">(<span class="hljs-type">int</span> m, <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y)</span> &#123;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">minTotal</span> <span class="hljs-operator">=</span> n * x;<br>    <span class="hljs-type">int</span> <span class="hljs-variable">maxTotal</span> <span class="hljs-operator">=</span> n * y;<br>    <span class="hljs-keyword">if</span> (m &gt; maxTotal || m &lt; minTotal) &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br><br>    <span class="hljs-type">int</span> <span class="hljs-variable">remaining</span> <span class="hljs-operator">=</span> m - minTotal;<br>    <span class="hljs-type">Random</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>();<br>    List&lt;Integer&gt; redPacket = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;(n);<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>        redPacket.add(x);<br>    &#125;<br><br>    <span class="hljs-type">int</span> <span class="hljs-variable">idx</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">while</span> (remaining &gt; <span class="hljs-number">0</span>) &#123;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">maxAddition</span> <span class="hljs-operator">=</span> Math.min(y - redPacket.get(idx), remaining);<br>        <span class="hljs-type">int</span> <span class="hljs-variable">addition</span> <span class="hljs-operator">=</span> r.nextInt(maxAddition + <span class="hljs-number">1</span>);<br>        redPacket.set(idx, addition + redPacket.get(idx));<br>        idx++;<br>        remaining -= addition;<br>    &#125;<br><br>    Collections.shuffle(redPacket, r);<br>    <span class="hljs-keyword">return</span> redPacket;<br>&#125;<br></code></pre></td></tr></table></figure>
+                <h1 id="可中断性"><a href="#可中断性" class="headerlink" title="可中断性"></a>可中断性</h1><p>下面这个例子，A先获取锁，然后持有锁睡眠5秒，B尝试获取锁的过程中被中断。于是程序输出</p>
+<figure class="highlight cos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cos">Thread-A acquired the <span class="hljs-keyword">lock</span>.<br>Thread-B was interrupted <span class="hljs-keyword">while</span> waiting <span class="hljs-keyword">for</span> the <span class="hljs-keyword">lock</span>.<br>Thread-A released the <span class="hljs-keyword">lock</span>.<br></code></pre></td></tr></table></figure>
 
-<h2 id="二倍均值法"><a href="#二倍均值法" class="headerlink" title="二倍均值法"></a>二倍均值法</h2><p>能保证生成10个红包</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> List&lt;Integer&gt; <span class="hljs-title function_">generateRedPacket2</span><span class="hljs-params">(<span class="hljs-type">int</span> m, <span class="hljs-type">int</span> n, <span class="hljs-type">int</span> x, <span class="hljs-type">int</span> y)</span> &#123;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">minTotal</span> <span class="hljs-operator">=</span> n * x;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">maxTotal</span> <span class="hljs-operator">=</span> n * y;<br>        <span class="hljs-keyword">if</span> (m &gt; maxTotal || m &lt; minTotal) &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>        &#125;<br><br>        <span class="hljs-type">int</span> <span class="hljs-variable">remaining</span> <span class="hljs-operator">=</span> m;<br>        <span class="hljs-type">Random</span> <span class="hljs-variable">r</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Random</span>();<br>        List&lt;Integer&gt; redPacket = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ArrayList</span>&lt;&gt;();<br>        <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; n; i++) &#123;<br>            <span class="hljs-type">int</span> <span class="hljs-variable">min</span> <span class="hljs-operator">=</span> Math.max(x, remaining - (n - i - <span class="hljs-number">1</span>) * y);<br>            <span class="hljs-type">int</span> <span class="hljs-variable">max</span> <span class="hljs-operator">=</span> Math.min(y, remaining - (n - i - <span class="hljs-number">1</span>) * x);<br><br>            <span class="hljs-type">int</span> <span class="hljs-variable">amount</span> <span class="hljs-operator">=</span> min + r.nextInt(max - min + <span class="hljs-number">1</span>);<br>            redPacket.add(amount);<br>            remaining -= amount;<br>        &#125;<br><br>        Collections.shuffle(redPacket, r);<br>        <span class="hljs-keyword">return</span> redPacket;<br>    &#125;<br></code></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ReentrantLockExample</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-type">ReentrantLock</span> <span class="hljs-variable">lock</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLock</span>();<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doWork</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 尝试获取锁，并支持中断</span><br>            lock.lockInterruptibly();<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; acquired the lock.&quot;</span>);<br><br>            <span class="hljs-comment">// 模拟一些工作</span><br>            Thread.sleep(<span class="hljs-number">5000</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; was interrupted while waiting for the lock.&quot;</span>);<br>        &#125; <span class="hljs-keyword">finally</span> &#123;<br>            <span class="hljs-keyword">if</span> (lock.isHeldByCurrentThread()) &#123;<br>                lock.unlock();<br>                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; released the lock.&quot;</span>);<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">ReentrantLockExample</span> <span class="hljs-variable">example</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReentrantLockExample</span>();<br><br>        <span class="hljs-comment">// 创建一个线程 A</span><br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">threadA</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; example.doWork1(), <span class="hljs-string">&quot;Thread-A&quot;</span>);<br>        <span class="hljs-comment">// 创建一个线程 B，会在短暂等待后中断</span><br>        <span class="hljs-type">Thread</span> <span class="hljs-variable">threadB</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                example.doWork1();<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>                e.printStackTrace();<br>            &#125;<br>        &#125;, <span class="hljs-string">&quot;Thread-B&quot;</span>);<br><br>        threadA.start();<br>        threadB.start();<br><br>        <span class="hljs-comment">// 主线程等待 1 秒钟，然后中断 B 线程</span><br>        <span class="hljs-keyword">try</span> &#123;<br>            Thread.sleep(<span class="hljs-number">1000</span>);<br>            threadB.interrupt();<br>        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+<p>如果是用synchronized锁</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doWork2</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; acquired the lock.&quot;</span>);<br>        Thread.sleep(<span class="hljs-number">5000</span>);<br>    &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; was interrupted while waiting for the lock.&quot;</span>);<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; released the lock.&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>则会输出</p>
+<figure class="highlight cos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs cos">Thread-A acquired the <span class="hljs-keyword">lock</span>.<br>Thread-A released the <span class="hljs-keyword">lock</span>.<br>Thread-B acquired the <span class="hljs-keyword">lock</span>.<br>Thread-B was interrupted <span class="hljs-keyword">while</span> waiting <span class="hljs-keyword">for</span> the <span class="hljs-keyword">lock</span>.<br>Thread-B released the <span class="hljs-keyword">lock</span>.<br></code></pre></td></tr></table></figure>
+
+<h1 id="超时"><a href="#超时" class="headerlink" title="超时"></a>超时</h1><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">doWork3</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 尝试获取锁，等待最多 2 秒</span><br>        <span class="hljs-keyword">if</span> (lock.tryLock(<span class="hljs-number">2</span>, TimeUnit.SECONDS)) &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; acquired the lock.&quot;</span>);<br><br>            <span class="hljs-comment">// 模拟一些工作</span><br>            Thread.sleep(<span class="hljs-number">3000</span>);<br>        &#125; <span class="hljs-keyword">else</span> &#123;<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; could not acquire the lock within timeout.&quot;</span>);<br>        &#125;<br>    &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;<br>        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; was interrupted.&quot;</span>);<br>    &#125; <span class="hljs-keyword">finally</span> &#123;<br>        <span class="hljs-keyword">if</span> (lock.isHeldByCurrentThread()) &#123;<br>            lock.unlock();<br>            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot; released the lock.&quot;</span>);<br>        &#125;<br>    &#125;<br>&#125;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">testTimeout</span><span class="hljs-params">(ReentrantLockExample example)</span> &#123;<br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">threadA</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; example.doWork3(), <span class="hljs-string">&quot;Thread-A&quot;</span>);<br>    <span class="hljs-comment">// 创建一个线程 B，会尝试获取锁但会因为锁被线程A占用而超时</span><br>    <span class="hljs-type">Thread</span> <span class="hljs-variable">threadB</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; example.doWork3(), <span class="hljs-string">&quot;Thread-B&quot;</span>);<br><br>    threadA.start();<br>    threadB.start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>会输出</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs livecodeserver">Thread-B acquired <span class="hljs-keyword">the</span> lock.<br>Thread-A could <span class="hljs-keyword">not</span> acquire <span class="hljs-keyword">the</span> lock <span class="hljs-keyword">within</span> timeout.<br>Thread-B released <span class="hljs-keyword">the</span> lock.<br></code></pre></td></tr></table></figure>
                 
               </div>
             
@@ -290,6 +299,13 @@
             <div>
               <div class="post-metas my-3">
   
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/Java/" class="print-no-link">#Java</a>
+      
+    </div>
   
 </div>
 
@@ -299,8 +315,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>带上下限的红包算法</div>
-      <div>http://hhubibi.github.io/2024/08/29/redpacket/</div>
+      <div>ReentrantLock可中断等特性的例子</div>
+      <div>http://hhubibi.github.io/2024/09/05/reentrantlock/</div>
     </div>
     <div class="license-meta">
       
@@ -312,7 +328,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2024年8月29日</div>
+          <div>2024年9月5日</div>
         </div>
       
       
@@ -344,9 +360,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2024/08/30/tree-traverse/" title="二叉树刷题笔记">
+                      <a href="/2024/09/06/ABA/" title="CAS中的ABA问题">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">二叉树刷题笔记</span>
+                        <span class="hidden-mobile">CAS中的ABA问题</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -354,8 +370,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2024/08/26/system-design/" title="场景题和系统设计">
-                        <span class="hidden-mobile">场景题和系统设计</span>
+                      <a href="/2024/08/30/tree-traverse/" title="二叉树刷题笔记">
+                        <span class="hidden-mobile">二叉树刷题笔记</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
