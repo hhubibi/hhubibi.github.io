@@ -15,7 +15,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
-  <meta name="theme-color" content="#2f4154">
+  <meta name="theme-color" content="#365371">
   <meta name="author" content="hhubibi">
   <meta name="keywords" content="">
   
@@ -185,13 +185,13 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+     style="background: url('/images/banner.jpg') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Welcome to my lonely planet!"></span>
+            <span id="subtitle" data-typed-text="道阻且长，行则将至"></span>
           
         </div>
 
@@ -229,15 +229,15 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h2 class="index-header">
         
-        <a href="/2024/09/07/Java/" target="_self">
-          
+        <a href="/2024/09/18/dev-log/" target="_self">
+          小破站の施工记录
         </a>
       </h2>
 
       
-      <a class="index-excerpt index-excerpt__noimg" href="/2024/09/07/Java/" target="_self">
+      <a class="index-excerpt index-excerpt__noimg" href="/2024/09/18/dev-log/" target="_self">
         <div>
-          什么是反射？为什么要反射？反射怎么实现的？为什么反射效率低？怎么提高反射的效率？什么是反射？Java的反射是在程序运行时动态地加载类并获取类的详细信息，从而操作类的方法和字段。本质上是通过获得Class对象之后，再通过class对象进行反编译，从而获取对象的各种信息。反射的包基本在java.lang.reflect.*下。为什么要反射？因为Java需要先编译再运行，程序中对象的类型在编译的时候就
+          
         </div>
       </a>
 
@@ -245,8 +245,8 @@
         
           <div class="post-meta mr-3">
             <i class="iconfont icon-date"></i>
-            <time datetime="2024-09-07 18:53" pubdate>
-              2024-09-07
+            <time datetime="2024-09-18 21:10" pubdate>
+              2024-09-18
             </time>
           </div>
         
@@ -270,7 +270,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/09/06/multithread/" target="_self">
         <div>
-          多线程打印奇偶数Sychronized写法123456789101112131415161718192021222324252627282930313233343536373839404142434445public class PrintOddEven &#123;    private static int MAX_COUNT = 10;    private static int num =
+          
         </div>
       </a>
 
@@ -310,7 +310,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/09/06/ABA/" target="_self">
         <div>
-          什么是ABA问题ABA就是有两个线程共享一个变量value，A线程读取到的时候这个值为1，准备修改的时候值还是1，但是可能这过程中B线程修改了变量1-&gt;2-&gt;1，仅仅用CAS无法得知这种修改 123456789101112131415161718192021222324252627282930313233343536373839404142434445import java.util.
+          
         </div>
       </a>
 
@@ -350,7 +350,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/09/05/reentrantlock/" target="_self">
         <div>
-          可中断性下面这个例子，A先获取锁，然后持有锁睡眠5秒，B尝试获取锁的过程中被中断。于是程序输出 123Thread-A acquired the lock.Thread-B was interrupted while waiting for the lock.Thread-A released the lock.  12345678910111213141516171819202122232425
+          
         </div>
       </a>
 
@@ -390,7 +390,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/30/tree-traverse/" target="_self">
         <div>
-          二叉树的遍历前序遍历栈12345678910111213141516public List&lt;Integer&gt; preorderTraversal(TreeNode root) &#123;    List&lt;Integer&gt; ans = new ArrayList&lt;&gt;();    Stack&lt;TreeNode&gt; stk = new Stack&lt;&
+          
         </div>
       </a>
 
@@ -423,7 +423,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/29/redpacket/" target="_self">
         <div>
-          群红包总金额m，分n份，每份下限x，上限y，生成一种的随机的可行分配方案  最简单的版本，随机思路就是先分配最小金额，然后把剩下的金额不断随机加上去，直到为0。这种不太适合流式处理。 1234567891011121314151617181920212223242526public static List&lt;Integer&gt; generateRedPacket(int m, int n
+          
         </div>
       </a>
 
@@ -456,7 +456,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/26/system-design/" target="_self">
         <div>
-          分布式id 唯一 高可用 高性能：生成速度快、资源消耗小 有序性：趋势递增 安全：需要脱敏，不能包含订单数量等敏感信息  数据库主键自增数据库号段其实就是批量获取一批号，current_max_id到current_max_id + step，减少数据库的访问次数 12345678CREATE TABLE `sequence_id_generator` (  `id` int(10) NOT NU
+          
         </div>
       </a>
 
@@ -489,7 +489,7 @@
       
       <a class="index-excerpt index-excerpt__noimg" href="/2024/08/22/hashmap/" target="_self">
         <div>
-          字节面试官问了一个问题，为什么实习的项目里用ConcurrentHashMap而不是HashMap，这个map只是单线程在更新，其实用普通的HashMap也可以？我回答的是并发写的时候会有问题，应该不太对。下面使用jdk 1.8来验证一下。  其实我的实习项目里是先更新数据库，然后增量更新缓存。如果主线程和定时任务都在更新缓存的话，是会有写写并发的问题的。但这应该不是主要的原因。（写写并发带来的
+          
         </div>
       </a>
 
